@@ -81,7 +81,7 @@ fun CheckOrb(done: Boolean, color: Color, onClick: () -> Unit) {
 
 /** ‹ Tue 30 Sep › — avoids the experimental date-picker; big buttons are easier for small fingers anyway. */
 @Composable
-fun DateStepper(date: LocalDate, onChange: (LocalDate) -> Unit, modifier: Modifier = Modifier) {
+fun DateStepper(date: LocalDate, modifier: Modifier = Modifier, onChange: (LocalDate) -> Unit) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         TextButton(onClick = { onChange(date.minusWeeks(1)) }) { Text("-7") }
         IconButton(onClick = { onChange(date.minusDays(1)) }) { Icon(Icons.Filled.ChevronLeft, "Previous day") }
