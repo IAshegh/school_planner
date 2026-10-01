@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.LocalDate
+import java.util.UUID
 
 @Entity(tableName = "subject")
 data class Subject(
@@ -69,6 +70,8 @@ data class Homework(
     val done: Boolean = false,
     val doneDate: LocalDate? = null,
     val photoUri: String? = null,
+    /** Stable id shared between phones (the local autoincrement id differs per device). */
+    @ColumnInfo(defaultValue = "''") val syncId: String = UUID.randomUUID().toString(),
 )
 
 @Entity(
@@ -91,6 +94,7 @@ data class Exam(
     val room: String = "",
     val topics: String = "",
     val notes: String = "",
+    @ColumnInfo(defaultValue = "''") val syncId: String = UUID.randomUUID().toString(),
 )
 
 /**

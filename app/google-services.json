@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821110622886",
+    "project_id": "accu-school-planner",
+    "storage_bucket": "accu-school-planner.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821110622886:android:774195cbeab05b77ae0267",
+        "android_client_info": {
+          "package_name": "com.iashegh.schoolplanner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBp1X5dAyTlkIgwNuiXISCPWWLcsrt3L0s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

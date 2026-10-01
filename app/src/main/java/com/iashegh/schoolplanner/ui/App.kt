@@ -67,6 +67,7 @@ import com.iashegh.schoolplanner.ui.screens.PlannerScreen
 import com.iashegh.schoolplanner.ui.screens.ScheduleScreen
 import com.iashegh.schoolplanner.ui.screens.SettingsScreen
 import com.iashegh.schoolplanner.ui.screens.SubjectsScreen
+import com.iashegh.schoolplanner.ui.screens.SyncScreen
 import com.iashegh.schoolplanner.ui.screens.TimetableScreen
 import com.iashegh.schoolplanner.ui.screens.WeekScreen
 import com.iashegh.schoolplanner.ui.screens.collectAsStateCompat
@@ -236,6 +237,7 @@ private fun PlannerScaffold(vm: MainViewModel, settings: Settings) {
                 composable("parent/timetable") { Guarded(vm, navController) { TimetableScreen(vm, settings) { navController.popBackStack() } } }
                 composable("parent/calendar") { Guarded(vm, navController) { CalendarScreen(vm, settings) { navController.popBackStack() } } }
                 composable("parent/overrides") { Guarded(vm, navController) { OverridesScreen(vm) { navController.popBackStack() } } }
+                composable("parent/sync") { Guarded(vm, navController) { SyncScreen(vm, settings) { navController.popBackStack() } } }
                 composable("parent/backup") { Guarded(vm, navController) { BackupScreen(vm) { navController.popBackStack() } } }
             }
         }

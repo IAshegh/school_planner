@@ -18,6 +18,8 @@ import java.time.temporal.TemporalAdjusters
 
 enum class CycleMode { WEEKLY, AB, ROTATING }
 
+enum class SyncRole { NONE, PARENT, CHILD }
+
 data class Settings(
     val skin: Skin = Skin.GALACTIC,
     val soundOn: Boolean = true,
@@ -34,6 +36,8 @@ data class Settings(
     val morningMinute: Int = 7 * 60,
     val pinHash: String? = null,
     val pinSalt: String? = null,
+    val syncRole: SyncRole = SyncRole.NONE,
+    val familyCode: String? = null,
 ) {
     val anchor: LocalDate get() = LocalDate.ofEpochDay(anchorEpochDay)
     val hasPin: Boolean get() = pinHash != null
@@ -57,6 +61,8 @@ class SettingsRepository(private val context: Context) {
         val morningMin = intPreferencesKey("morning_min")
         val pinHash = stringPreferencesKey("pin_hash")
         val pinSalt = stringPreferencesKey("pin_salt")
+        val syncRole = stringPreferencesKey("sync_role")
+        val familyCode = stringPreferencesKey("family_code")
     }
 
     val flow: Flow<Settings> = context.dataStore.data.map { p ->
@@ -75,6 +81,8 @@ class SettingsRepository(private val context: Context) {
             morningMinute = p[K.morningMin] ?: d.morningMinute,
             pinHash = p[K.pinHash],
             pinSalt = p[K.pinSalt],
+            syncRole = p[K.syncRole]?.let { runCatching { SyncRole.valueOf(it) }.getOrNull() } ?: SyncRole.NONE,
+            familyCode = p[K.familyCode],
         )
     }
 
@@ -104,6 +112,11 @@ class SettingsRepository(private val context: Context) {
     suspend fun setPin(hash: String, salt: String) = context.dataStore.edit {
         it[K.pinHash] = hash
         it[K.pinSalt] = salt
+    }
+
+    suspend fun setSync(role: SyncRole, code: String?) = context.dataStore.edit {
+        it[K.syncRole] = role.name
+        if (code == null) it.remove(K.familyCode) else it[K.familyCode] = code
     }
 
     suspend fun clearAll() = context.dataStore.edit { it.clear() }

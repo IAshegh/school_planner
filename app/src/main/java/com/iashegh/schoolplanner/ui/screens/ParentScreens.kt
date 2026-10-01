@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ViewWeek
@@ -105,6 +106,7 @@ fun ParentHubScreen(
             HubRow(Icons.Filled.CalendarMonth, "Calendar & cycle", "School days, A/B weeks, rotating days", Color(0xFFAB47BC)) { onNavigate("parent/calendar") }
             HubRow(Icons.Filled.Event, "Days off & changes", "Holidays, half days, swapped lessons", Color(0xFFEF5350)) { onNavigate("parent/overrides") }
             HubRow(Icons.Filled.Save, "Backup & reset", "Save or restore everything as a file", Color(0xFF26C6DA)) { onNavigate("parent/backup") }
+            HubRow(Icons.Filled.Sync, "Sync phones", "Share the schedule between parent and child phones", Color(0xFF5C6BC0)) { onNavigate("parent/sync") }
             HubRow(Icons.Filled.Password, "Change PIN", null, Color(0xFF8D6E63)) { changePin = true }
 
             if (subjects.isEmpty()) {

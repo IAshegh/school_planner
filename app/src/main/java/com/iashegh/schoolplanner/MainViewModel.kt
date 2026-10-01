@@ -22,6 +22,7 @@ import com.iashegh.schoolplanner.data.PinManager
 import com.iashegh.schoolplanner.data.ScheduleResolver
 import com.iashegh.schoolplanner.data.Settings
 import com.iashegh.schoolplanner.data.SettingsRepository
+import com.iashegh.schoolplanner.data.SyncManager
 import com.iashegh.schoolplanner.data.Subject
 import com.iashegh.schoolplanner.data.TimetableSlot
 import com.iashegh.schoolplanner.ui.theme.Skin
@@ -31,7 +32,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,6 +57,9 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     val exams = dao.exams().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val overrides = dao.overrides().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val sync = SyncManager(app, db, settingsRepo, viewModelScope)
+    val syncStatus: StateFlow<String> = sync.status
+
     /** Only lives as long as the process; leaving the parent screens locks again. */
     var parentUnlocked by mutableStateOf(false)
     /** Bumped whenever something worth celebrating happens. */
@@ -64,6 +70,10 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     val messages: SharedFlow<String> = _messages
 
     init {
+        viewModelScope.launch {
+            settings.filterNotNull().map { it.syncRole to it.familyCode }.distinctUntilChanged()
+                .collect { (role, code) -> sync.restart(role, code) }
+        }
         viewModelScope.launch {
             ReminderScheduler.rescheduleAll(app, settingsRepo.flow.first())
         }
@@ -120,17 +130,23 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     fun deleteOverride(o: DayOverride) = viewModelScope.launch { dao.deleteOverride(o) }
 
     // ---- homework ----
-    fun saveHomework(h: Homework) = viewModelScope.launch { dao.upsertHomework(h) }
+    fun saveHomework(h: Homework) = viewModelScope.launch {
+        dao.upsertHomework(h)
+        sync.pushHomework(h)
+    }
 
     fun toggleHomework(h: Homework) = viewModelScope.launch {
         val nowDone = !h.done
-        dao.upsertHomework(h.copy(done = nowDone, doneDate = if (nowDone) LocalDate.now() else null))
+        val updated = h.copy(done = nowDone, doneDate = if (nowDone) LocalDate.now() else null)
+        dao.upsertHomework(updated)
+        sync.pushHomework(updated)
         if (nowDone) cheer++
     }
 
     fun deleteHomework(h: Homework) = viewModelScope.launch {
         h.photoUri?.let { runCatching { File(it).delete() } }
         dao.deleteHomework(h)
+        sync.deleteHomework(h)
     }
 
     // ---- exams ----
@@ -140,11 +156,13 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         ReminderScheduler.cancelExam(app, saved.id)
         val name = subjects.value.firstOrNull { it.id == saved.subjectId }?.name ?: "Exam"
         ReminderScheduler.scheduleExam(app, saved, name)
+        sync.pushExam(saved)
     }
 
     fun deleteExam(e: Exam) = viewModelScope.launch {
         ReminderScheduler.cancelExam(app, e.id)
         dao.deleteExam(e)
+        sync.deleteExam(e)
     }
 
     // ---- photos ----
@@ -164,6 +182,11 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
             f.absolutePath
         }.getOrNull()
     }
+
+    // ---- phone sync ----
+    suspend fun createFamily(): String = sync.createFamily()
+    suspend fun joinFamily(code: String) = sync.joinFamily(code)
+    fun unlinkSync() = viewModelScope.launch { sync.unlink() }
 
     // ---- backup / reset ----
     suspend fun exportJson(): String = Backup.export(db, settingsRepo.flow.first())

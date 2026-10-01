@@ -44,3 +44,26 @@ Needs JDK 17 and the Android SDK (platform 34).
 * Attached homework photos are stored inside the app and are not part of the JSON backup.
 * Exact exam alarms use `AlarmManager.setExactAndAllowWhileIdle`; on Android 12+ they fall back to
   inexact alarms if the exact-alarm permission is not granted.
+
+## Syncing parent and child phones (Firebase)
+
+Uses a free Firebase project (`app/google-services.json`) with **Anonymous sign-in** and **Cloud Firestore**.
+Firestore security rules (Firebase console → Firestore Database → Rules):
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /families/{code} {
+      allow get, create: if request.auth != null;
+    }
+    match /families/{code}/{collection}/{doc} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+In the app: **Parent area → Sync phones**. On the parent phone tap *Create family code*; on the child phone
+enter that code. The parent phone owns subjects, bell schedule, timetable, days off and calendar settings;
+homework and exams are shared both ways.

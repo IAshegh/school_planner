@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -14,7 +15,8 @@ interface PlannerDao {
     @Query("SELECT * FROM subject ORDER BY name COLLATE NOCASE")
     fun subjects(): Flow<List<Subject>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    // @Upsert (not REPLACE): REPLACE deletes the row first, which would cascade-delete its homework/exams/slots.
+    @Upsert
     suspend fun upsertSubject(subject: Subject): Long
 
     @Delete
@@ -110,4 +112,20 @@ interface PlannerDao {
 
     @Update
     suspend fun updateHomework(hw: Homework)
+
+    // Sync helpers
+    @Query("SELECT * FROM homework WHERE syncId = :syncId LIMIT 1")
+    suspend fun homeworkBySyncId(syncId: String): Homework?
+
+    @Query("DELETE FROM homework WHERE syncId = :syncId")
+    suspend fun deleteHomeworkBySyncId(syncId: String)
+
+    @Query("SELECT * FROM exam WHERE syncId = :syncId LIMIT 1")
+    suspend fun examBySyncId(syncId: String): Exam?
+
+    @Query("DELETE FROM exam WHERE syncId = :syncId")
+    suspend fun deleteExamBySyncId(syncId: String)
+
+    @Query("DELETE FROM subject WHERE id NOT IN (:keep)")
+    suspend fun deleteSubjectsNotIn(keep: List<Long>)
 }
