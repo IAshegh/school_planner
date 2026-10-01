@@ -159,6 +159,7 @@ private fun PlannerScaffold(vm: MainViewModel, settings: Settings) {
 
         Scaffold(
             containerColor = Color.Transparent,
+            contentColor = colors.onSurface,
             snackbarHost = { SnackbarHost(snackbar) },
             topBar = {
                 if (isMain) {
@@ -172,10 +173,10 @@ private fun PlannerScaffold(vm: MainViewModel, settings: Settings) {
                             Text(today.format(LongDate), style = MaterialTheme.typography.bodySmall, color = colors.muted)
                         }
                         IconButton(onClick = { fb.tap(); navController.navigate(Routes.SETTINGS) { launchSingleTop = true } }) {
-                            Icon(Icons.Filled.Settings, contentDescription = "Preferences")
+                            Icon(Icons.Filled.Settings, contentDescription = "Preferences", tint = colors.onSurface)
                         }
                         IconButton(onClick = { fb.tap(); openParent() }) {
-                            Icon(if (vm.parentUnlocked) Icons.Filled.LockOpen else Icons.Filled.Lock, contentDescription = "Parent area")
+                            Icon(if (vm.parentUnlocked) Icons.Filled.LockOpen else Icons.Filled.Lock, contentDescription = "Parent area", tint = colors.onSurface)
                         }
                     }
                 }

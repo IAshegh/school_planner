@@ -17,10 +17,10 @@ haptics + synthesised sound effects, exam / morning reminders and JSON backup & 
 
 You can also start a build manually: **Actions → Build APK → Run workflow**.
 
-The debug APK is signed with the standard Android debug key, which is fine for personal use.
-To update the app later, install the newer APK over the old one (same debug key = data is kept)
-*as long as it is built by GitHub's runner or the same machine*; if the key ever changes, use
-**Parent area → Backup & reset** first.
+
+Every build is signed with the debug key committed at `app/debug.keystore`, so a newer APK installs over the
+old one and keeps all data. (The first build with this key cannot replace an install made from an older build:
+save a backup in **Parent area → Backup & reset**, uninstall once, install, then restore.)
 
 ## Building locally
 
