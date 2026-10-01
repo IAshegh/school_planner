@@ -9,12 +9,6 @@ import androidx.room.withTransaction
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(
-    entities = [Subject::class, TimetableSlot::class, BellPeriod::class, Homework::class, Exam::class, DayOverride::class],
-    version = 2,
-    exportSchema = false,
-)
-@TypeConverters(Converters::class)
 private val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE homework ADD COLUMN syncId TEXT NOT NULL DEFAULT ''")
@@ -24,6 +18,12 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+@Database(
+    entities = [Subject::class, TimetableSlot::class, BellPeriod::class, Homework::class, Exam::class, DayOverride::class],
+    version = 2,
+    exportSchema = false,
+)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun dao(): PlannerDao
 
