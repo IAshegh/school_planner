@@ -25,6 +25,7 @@ import com.iashegh.schoolplanner.data.SettingsRepository
 import com.iashegh.schoolplanner.data.SyncManager
 import com.iashegh.schoolplanner.data.Subject
 import com.iashegh.schoolplanner.data.TimetableSlot
+import com.iashegh.schoolplanner.ui.theme.AppBackground
 import com.iashegh.schoolplanner.ui.theme.Skin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -83,6 +84,13 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     fun setSkin(s: Skin) = viewModelScope.launch { settingsRepo.setSkin(s) }
     fun setSound(v: Boolean) = viewModelScope.launch { settingsRepo.setSound(v) }
     fun setHaptics(v: Boolean) = viewModelScope.launch { settingsRepo.setHaptics(v) }
+    /** [imagePath] is only given when a new photo was picked; the previous photo file is then removed. */
+    fun setBackground(choice: AppBackground, imagePath: String? = null) = viewModelScope.launch {
+        val old = settingsRepo.flow.first().bgImagePath
+        settingsRepo.setBackground(choice, imagePath)
+        if (imagePath != null && old != null && old != imagePath) runCatching { File(old).delete() }
+    }
+
     fun setDecoder(v: Boolean) = viewModelScope.launch { settingsRepo.setDecoder(v) }
 
     fun setMorning(on: Boolean, minute: Int) = viewModelScope.launch {

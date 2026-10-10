@@ -17,7 +17,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.FilledTonalButton
@@ -29,6 +31,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,29 +84,30 @@ fun CheckOrb(done: Boolean, color: Color, onClick: () -> Unit) {
     }
 }
 
-/** ‹ Tue 30 Sep › — avoids the experimental date-picker; big buttons are easier for small fingers anyway. */
+/** ‹ [Tue 30 Sep] › — tap the date for the spinner picker, arrows move one day. */
 @Composable
 fun DateStepper(date: LocalDate, modifier: Modifier = Modifier, onChange: (LocalDate) -> Unit) {
+    var show by remember { mutableStateOf(false) }
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-        TextButton(onClick = { onChange(date.minusWeeks(1)) }) { Text("-7") }
         IconButton(onClick = { onChange(date.minusDays(1)) }) { Icon(Icons.Filled.ChevronLeft, "Previous day") }
-        Text(date.format(ShortDate), style = MaterialTheme.typography.titleMedium)
+        FilledTonalButton(onClick = { show = true }) {
+            Icon(Icons.Filled.CalendarMonth, null, Modifier.size(20.dp))
+            Text("  " + date.format(ShortDate) + " " + date.year, style = MaterialTheme.typography.titleMedium)
+        }
         IconButton(onClick = { onChange(date.plusDays(1)) }) { Icon(Icons.Filled.ChevronRight, "Next day") }
-        TextButton(onClick = { onChange(date.plusWeeks(1)) }) { Text("+7") }
     }
+    if (show) DatePickDialog(date, onConfirm = { onChange(it); show = false }, onDismiss = { show = false })
 }
 
-/** 08 : 30 with +/- buttons for hour and 5-minute steps. */
+/** Shows the time; tap it for the clock-face picker. */
 @Composable
 fun TimeStepper(minute: Int, onChange: (Int) -> Unit, modifier: Modifier = Modifier) {
-    fun wrap(v: Int) = ((v % 1440) + 1440) % 1440
-    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        FilledTonalButton(onClick = { onChange(wrap(minute - 60)) }) { Text("-h") }
-        FilledTonalButton(onClick = { onChange(wrap(minute - 5)) }) { Text("-5") }
-        Text(fmtMinute(minute), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 6.dp))
-        FilledTonalButton(onClick = { onChange(wrap(minute + 5)) }) { Text("+5") }
-        FilledTonalButton(onClick = { onChange(wrap(minute + 60)) }) { Text("+h") }
+    var show by remember { mutableStateOf(false) }
+    FilledTonalButton(onClick = { show = true }, modifier = modifier) {
+        Icon(Icons.Filled.Schedule, null, Modifier.size(20.dp))
+        Text("  " + fmtMinute(minute), style = MaterialTheme.typography.titleMedium)
     }
+    if (show) TimePickDialog(minute, onConfirm = { onChange(it); show = false }, onDismiss = { show = false })
 }
 
 @Composable

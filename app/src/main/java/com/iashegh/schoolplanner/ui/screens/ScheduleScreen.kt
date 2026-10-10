@@ -112,7 +112,7 @@ fun ScheduleScreen(vm: MainViewModel, settings: Settings, now: LocalDateTime, on
                     ) {
                         Text(
                             label, style = MaterialTheme.typography.titleSmall,
-                            color = if (selected) (if (colors.dark) Color(0xFF00102A) else Color.White) else colors.onSurface,
+                            color = if (selected) colors.onPrimary else colors.onSurface,
                         )
                     }
                 }
@@ -250,7 +250,7 @@ private fun LessonCard(lesson: Lesson, active: Boolean, decoder: Boolean, modifi
             SubjectBadge(lesson.subject, 52.dp, decoder)
             Column(Modifier.weight(1f).padding(horizontal = 14.dp)) {
                 Text(lesson.subject.name, style = MaterialTheme.typography.titleMedium)
-                if (decoder) GlyphText(lesson.subject.name, LocalContentColorOr(colors.onSurface), 18.dp)
+                if (decoder) GlyphText(lesson.subject.name, LocalContentColorOr(colors.onCard), 18.dp)
                 val details = listOfNotNull(
                     lesson.room.takeIf { it.isNotBlank() }?.let { "Room $it" },
                     lesson.teacher.takeIf { it.isNotBlank() },
@@ -282,13 +282,13 @@ private fun LiveBanner(lesson: Lesson, nowMinute: Int, decoder: Boolean) {
     val remaining = end - nowMinute
     SkinCard(Modifier.fillMaxWidth(), accent = colors.accent) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            ProgressRing(progress, Color(lesson.subject.color), 72.dp, track = LocalContentColorOr(colors.onSurface).copy(alpha = 0.15f)) {
+            ProgressRing(progress, Color(lesson.subject.color), 72.dp, track = LocalContentColorOr(colors.onCard).copy(alpha = 0.15f)) {
                 Text("$remaining", style = MaterialTheme.typography.titleLarge)
             }
             Column(Modifier.padding(start = 16.dp)) {
                 Text("Happening now", style = MaterialTheme.typography.labelMedium, color = mutedColor())
                 Text(lesson.subject.name, style = MaterialTheme.typography.headlineSmall)
-                if (decoder) GlyphText(lesson.subject.name, LocalContentColorOr(colors.onSurface), 22.dp)
+                if (decoder) GlyphText(lesson.subject.name, LocalContentColorOr(colors.onCard), 22.dp)
                 Text("$remaining min left" + if (lesson.room.isNotBlank()) " · Room ${lesson.room}" else "", color = mutedColor())
             }
         }

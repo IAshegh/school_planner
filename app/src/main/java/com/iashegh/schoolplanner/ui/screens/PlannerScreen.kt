@@ -179,7 +179,7 @@ fun PlannerScreen(vm: MainViewModel, settings: Settings) {
                 },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
                 containerColor = LocalSkinColors.current.primary,
-                contentColor = if (LocalSkinColors.current.dark) Color(0xFF00102A) else Color.White,
+                contentColor = LocalSkinColors.current.onPrimary,
             ) { Icon(Icons.Filled.Add, contentDescription = "Add") }
         }
     }

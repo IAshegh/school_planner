@@ -30,8 +30,41 @@ data class SkinColors(
     val primary: Color,
     val accent: Color,
     val border: Color,
+    /** Is the page background dark? (text drawn directly on the background uses onSurface / muted) */
     val dark: Boolean,
+    /** Text colours for things sitting on cards / bars, which keep the skin's own surface colour. */
+    val onCard: Color = onSurface,
+    val mutedOnCard: Color = muted,
+    /** Text / icons on top of [primary]. */
+    val onPrimary: Color = if (dark) Color(0xFF00102A) else Color.White,
 )
+
+/** Choosable page backgrounds (Preferences). */
+enum class AppBackground(val label: String) {
+    SKIN("Theme default"), SPACE("Deep space"), SUNRISE("Sunrise"), OCEAN("Ocean"),
+    FOREST("Forest"), CANDY("Candy"), MIDNIGHT("Midnight"), PAPER("Plain paper"), PHOTO("My photo"),
+}
+
+data class BgSpec(val top: Color, val bottom: Color, val dark: Boolean, val stars: Boolean, val photo: Boolean = false)
+
+fun Skin.defaultBackground(): BgSpec = when (this) {
+    Skin.GALACTIC -> BgSpec(Color(0xFF070B24), Color(0xFF070B24), dark = true, stars = true)
+    Skin.BUILDER -> BgSpec(Color(0xFFFFF8E1), Color(0xFFFFF8E1), dark = false, stars = false)
+    Skin.SCRIBE -> BgSpec(Color(0xFFF2EEE6), Color(0xFFF2EEE6), dark = false, stars = false)
+}
+
+fun backgroundSpec(skin: Skin, choice: AppBackground, hasPhoto: Boolean): BgSpec = when (choice) {
+    AppBackground.SKIN -> skin.defaultBackground()
+    AppBackground.SPACE -> BgSpec(Color(0xFF070B24), Color(0xFF1B1F4B), dark = true, stars = true)
+    AppBackground.SUNRISE -> BgSpec(Color(0xFFFFF3E0), Color(0xFFFFCCBC), dark = false, stars = false)
+    AppBackground.OCEAN -> BgSpec(Color(0xFFE1F5FE), Color(0xFF81D4FA), dark = false, stars = false)
+    AppBackground.FOREST -> BgSpec(Color(0xFFE8F5E9), Color(0xFFA5D6A7), dark = false, stars = false)
+    AppBackground.CANDY -> BgSpec(Color(0xFFFCE4EC), Color(0xFFD1C4E9), dark = false, stars = false)
+    AppBackground.MIDNIGHT -> BgSpec(Color(0xFF12122A), Color(0xFF2D1B4E), dark = true, stars = false)
+    AppBackground.PAPER -> BgSpec(Color(0xFFF7F5F0), Color(0xFFF7F5F0), dark = false, stars = false)
+    AppBackground.PHOTO ->
+        if (hasPhoto) BgSpec(Color.Black, Color.Black, dark = true, stars = false, photo = true) else skin.defaultBackground()
+}
 
 private val GalacticColors = SkinColors(
     background = Color(0xFF070B24), surface = Color(0xFF121A45), onSurface = Color(0xFFEAF0FF),
@@ -53,6 +86,17 @@ fun Skin.colors(): SkinColors = when (this) {
     Skin.GALACTIC -> GalacticColors
     Skin.BUILDER -> BuilderColors
     Skin.SCRIBE -> ScribeColors
+}
+
+/** Skin colours, with the text that sits directly on the page re-chosen to suit a custom [bg]. */
+fun Skin.colors(bg: BgSpec?): SkinColors {
+    val base = colors()
+    if (bg == null) return base
+    return if (bg.dark) {
+        base.copy(background = bg.top, onSurface = Color(0xFFEAF0FF), muted = Color(0xFFB4BCE0), dark = true)
+    } else {
+        base.copy(background = bg.top, onSurface = Color(0xFF1F1D1A), muted = Color(0xFF55504A), dark = false)
+    }
 }
 
 val LocalSkin = staticCompositionLocalOf { Skin.GALACTIC }
@@ -95,12 +139,13 @@ fun Skin.cardShape(): RoundedCornerShape = when (this) {
 }
 
 @Composable
-fun PlannerTheme(skin: Skin, content: @Composable () -> Unit) {
+fun PlannerTheme(skin: Skin, bg: BgSpec? = null, content: @Composable () -> Unit) {
     val c = skin.colors()
+    val view = skin.colors(bg)
     val scheme = if (c.dark) {
         darkColorScheme(
             primary = c.primary, onPrimary = Color(0xFF00102A), secondary = c.accent,
-            background = c.background, onBackground = c.onSurface,
+            background = view.background, onBackground = view.onSurface,
             surface = c.surface, onSurface = c.onSurface, surfaceVariant = c.surface, onSurfaceVariant = c.muted,
             outline = c.border, primaryContainer = c.surface, onPrimaryContainer = c.onSurface,
             secondaryContainer = c.surface, onSecondaryContainer = c.onSurface,
@@ -108,14 +153,14 @@ fun PlannerTheme(skin: Skin, content: @Composable () -> Unit) {
     } else {
         lightColorScheme(
             primary = c.primary, onPrimary = Color.White, secondary = c.accent,
-            background = c.background, onBackground = c.onSurface,
+            background = view.background, onBackground = view.onSurface,
             surface = c.surface, onSurface = c.onSurface, surfaceVariant = c.surface, onSurfaceVariant = c.muted,
             outline = c.border, primaryContainer = c.background, onPrimaryContainer = c.onSurface,
             secondaryContainer = c.primary.copy(alpha = 0.15f), onSecondaryContainer = c.onSurface,
         )
     }
     val shape = skin.cardShape()
-    CompositionLocalProvider(LocalSkin provides skin, LocalSkinColors provides c) {
+    CompositionLocalProvider(LocalSkin provides skin, LocalSkinColors provides view) {
         MaterialTheme(
             colorScheme = scheme,
             typography = typographyFor(skin),

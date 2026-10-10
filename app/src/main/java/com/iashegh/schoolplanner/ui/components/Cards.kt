@@ -60,7 +60,7 @@ fun SkinCard(
     val colors = LocalSkinColors.current
     val shape = skin.cardShape()
     val fill = if (skin == Skin.BUILDER) accent else colors.surface
-    val textColor = if (skin == Skin.BUILDER) readableOn(accent) else colors.onSurface
+    val textColor = if (skin == Skin.BUILDER) readableOn(accent) else colors.onCard
 
     var outer = modifier
     if (skin == Skin.BUILDER) {

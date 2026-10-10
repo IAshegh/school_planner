@@ -72,7 +72,11 @@ import com.iashegh.schoolplanner.ui.screens.TimetableScreen
 import com.iashegh.schoolplanner.ui.screens.WeekScreen
 import com.iashegh.schoolplanner.ui.screens.collectAsStateCompat
 import com.iashegh.schoolplanner.ui.screens.rememberNow
-import com.iashegh.schoolplanner.ui.theme.LocalSkin
+import com.iashegh.schoolplanner.ui.theme.AppBackground
+import com.iashegh.schoolplanner.ui.theme.BgSpec
+import com.iashegh.schoolplanner.ui.theme.LocalSkinColors
+import com.iashegh.schoolplanner.ui.theme.backgroundSpec
+import com.iashegh.schoolplanner.ui.components.PageBackground
 import com.iashegh.schoolplanner.ui.theme.PlannerTheme
 import com.iashegh.schoolplanner.ui.theme.Skin
 import com.iashegh.schoolplanner.ui.theme.colors
@@ -94,17 +98,21 @@ fun PlannerApp(vm: MainViewModel) {
         Box(Modifier.fillMaxSize().background(Color.Black))
         return
     }
-    PlannerTheme(s.skin) {
+    val hasPhoto = s.bgImagePath != null
+    val spec = backgroundSpec(s.skin, s.background, hasPhoto)
+    // "Theme default" keeps the skin's own colours exactly; any other background re-picks the text colours.
+    val themeBg = if (s.background == AppBackground.SKIN || (s.background == AppBackground.PHOTO && !hasPhoto)) null else spec
+    PlannerTheme(s.skin, themeBg) {
         val feedback = rememberFeedback(s.soundOn, s.hapticsOn)
         androidx.compose.runtime.CompositionLocalProvider(LocalFeedback provides feedback) {
-            PlannerScaffold(vm, s)
+            PlannerScaffold(vm, s, spec)
         }
     }
 }
 
 @Composable
-private fun PlannerScaffold(vm: MainViewModel, settings: Settings) {
-    val colors = settings.skin.colors()
+private fun PlannerScaffold(vm: MainViewModel, settings: Settings, spec: BgSpec) {
+    val colors = LocalSkinColors.current
     val navController = rememberNavController()
     val backEntry by navController.currentBackStackEntryAsState()
     val route = backEntry?.destination?.route ?: Routes.SCHEDULE
@@ -155,8 +163,8 @@ private fun PlannerScaffold(vm: MainViewModel, settings: Settings) {
     val mainRoutes = listOf(Routes.SCHEDULE, Routes.PLANNER, Routes.WEEK)
     val isMain = route in mainRoutes
 
-    Box(Modifier.fillMaxSize().background(colors.background)) {
-        if (settings.skin == Skin.GALACTIC) StarField(streak = warp.value)
+    Box(Modifier.fillMaxSize()) {
+        PageBackground(spec, settings.bgImagePath, warp.value)
 
         Scaffold(
             containerColor = Color.Transparent,
@@ -184,7 +192,7 @@ private fun PlannerScaffold(vm: MainViewModel, settings: Settings) {
             },
             bottomBar = {
                 if (isMain) {
-                    NavigationBar(containerColor = colors.surface.copy(alpha = if (colors.dark) 0.85f else 1f)) {
+                    NavigationBar(containerColor = colors.surface.copy(alpha = if (settings.skin == Skin.GALACTIC) 0.9f else 1f)) {
                         listOf(
                             Triple(Routes.SCHEDULE, "Schedule", Icons.Filled.Today),
                             Triple(Routes.PLANNER, "Planner", Icons.Filled.Checklist),
@@ -203,11 +211,11 @@ private fun PlannerScaffold(vm: MainViewModel, settings: Settings) {
                                 icon = { Icon(icon, contentDescription = label) },
                                 label = { Text(label, style = MaterialTheme.typography.labelMedium) },
                                 colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = if (colors.dark) Color(0xFF00102A) else Color.White,
-                                    selectedTextColor = colors.onSurface,
+                                    selectedIconColor = colors.onPrimary,
+                                    selectedTextColor = colors.onCard,
                                     indicatorColor = colors.primary,
-                                    unselectedIconColor = colors.muted,
-                                    unselectedTextColor = colors.muted,
+                                    unselectedIconColor = colors.mutedOnCard,
+                                    unselectedTextColor = colors.mutedOnCard,
                                 ),
                             )
                         }
@@ -217,7 +225,7 @@ private fun PlannerScaffold(vm: MainViewModel, settings: Settings) {
         ) { padding ->
             NavHost(navController, startDestination = Routes.SCHEDULE, modifier = Modifier.padding(padding)) {
                 composable(Routes.SCHEDULE) {
-                    ScheduleScreen(vm, settings, now, onDaySwitch = { if (settings.skin == Skin.GALACTIC) warpTick++ })
+                    ScheduleScreen(vm, settings, now, onDaySwitch = { if (spec.stars) warpTick++ })
                 }
                 composable(Routes.PLANNER) { PlannerScreen(vm, settings) }
                 composable(Routes.WEEK) { WeekScreen(vm, settings) }

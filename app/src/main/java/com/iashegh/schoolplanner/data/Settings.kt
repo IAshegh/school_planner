@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.iashegh.schoolplanner.ui.theme.AppBackground
 import com.iashegh.schoolplanner.ui.theme.Skin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -38,6 +39,8 @@ data class Settings(
     val pinSalt: String? = null,
     val syncRole: SyncRole = SyncRole.NONE,
     val familyCode: String? = null,
+    val background: AppBackground = AppBackground.SKIN,
+    val bgImagePath: String? = null,
 ) {
     val anchor: LocalDate get() = LocalDate.ofEpochDay(anchorEpochDay)
     val hasPin: Boolean get() = pinHash != null
@@ -63,6 +66,8 @@ class SettingsRepository(private val context: Context) {
         val pinSalt = stringPreferencesKey("pin_salt")
         val syncRole = stringPreferencesKey("sync_role")
         val familyCode = stringPreferencesKey("family_code")
+        val background = stringPreferencesKey("background")
+        val bgImage = stringPreferencesKey("bg_image")
     }
 
     val flow: Flow<Settings> = context.dataStore.data.map { p ->
@@ -83,6 +88,8 @@ class SettingsRepository(private val context: Context) {
             pinSalt = p[K.pinSalt],
             syncRole = p[K.syncRole]?.let { runCatching { SyncRole.valueOf(it) }.getOrNull() } ?: SyncRole.NONE,
             familyCode = p[K.familyCode],
+            background = p[K.background]?.let { runCatching { AppBackground.valueOf(it) }.getOrNull() } ?: AppBackground.SKIN,
+            bgImagePath = p[K.bgImage],
         )
     }
 
@@ -112,6 +119,11 @@ class SettingsRepository(private val context: Context) {
     suspend fun setPin(hash: String, salt: String) = context.dataStore.edit {
         it[K.pinHash] = hash
         it[K.pinSalt] = salt
+    }
+
+    suspend fun setBackground(choice: AppBackground, imagePath: String?) = context.dataStore.edit {
+        it[K.background] = choice.name
+        if (imagePath != null) it[K.bgImage] = imagePath
     }
 
     suspend fun setSync(role: SyncRole, code: String?) = context.dataStore.edit {
